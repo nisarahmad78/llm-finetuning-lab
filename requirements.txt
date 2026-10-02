@@ -1,0 +1,10 @@
+torch
+transformers
+peft
+datasets
+accelerate
+pyyaml
+matplotlib
+fastapi
+uvicorn
+pillow
