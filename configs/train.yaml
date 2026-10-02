@@ -1,0 +1,42 @@
+# Fine-tuning run configuration — run-01
+# Everything that defines this experiment lives here. Change values, re-run,
+# and the run id + this file fully describe what happened.
+
+run_id: "run-01"
+seed: 42
+
+model:
+  base_model_id: "Qwen/Qwen2.5-0.5B-Instruct"
+  trust_remote_code: false
+  # NOTE: run-01 was first attempted with TinyLlama-1.1B-Chat-v1.0, but the
+  # fp32 weights alone used 5.5 GB of this box's 8 GB RAM and the training
+  # process was killed (OOM) before step 1. Re-scoped to Qwen2.5-0.5B.
+
+lora:
+  r: 16
+  lora_alpha: 32
+  lora_dropout: 0.05
+  bias: "none"
+  task_type: "CAUSAL_LM"
+  target_modules: ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]
+
+data:
+  train_path: "outputs/dataset/train.jsonl"
+  val_path: "outputs/dataset/val.jsonl"
+  max_seq_length: 256
+
+training:
+  num_epochs: 2
+  per_device_train_batch_size: 2
+  gradient_accumulation_steps: 4   # effective batch = 2*4 = 8
+  learning_rate: 0.0002
+  lr_scheduler: "cosine"
+  warmup_steps: 6   # ~5% of 120 total steps
+  weight_decay: 0.01
+  logging_steps: 10
+  save_steps: 15   # checkpoint every 15 steps; resume supported (see train.py)
+  dataloader_num_workers: 0        # CPU box: avoid worker RAM duplication
+
+output:
+  adapter_dir: "outputs/adapters/run-01"
+  log_path: "outputs/training/run-01-log.json"
